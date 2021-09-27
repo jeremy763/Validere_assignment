@@ -1,10 +1,8 @@
 import datetime
 import os
 import sys
-import numpy as np
 import requests
 import pandas as pd
-import re
 import io
 import getopt
 
@@ -78,12 +76,6 @@ def get_user_input():
     form_data["date1"] = start_date
     form_data["date2"] = end_date
 
-    print("crude_acronym:", crude_acronym)
-    print("start_date:", start_date)
-    print("end_date:", end_date)
-    print("operation:", operation)
-    print("limit:", limit)
-
     # check if it is stored in local
     saved_csv = crude_acronym + start_date + end_date
     if os.path.isfile(saved_csv):
@@ -110,28 +102,31 @@ def get_user_input():
     else:
         new_df = df.reset_index()
 
-    # print out the data
-    print("+-----+------------+-----------+")
-    print("|     | Date       |   Density |")
-    print("|-----+------------+-----------|")
-    index = 0
-    for index, row in new_df.iterrows():
-        if index > 9:
-            print("| ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
-        elif index > 99:
-            print("|", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
-        else:
-            print("|  ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
-
-    if index > 9:
-        print("+------+------------+-----------+")
-    elif index > 99:
-        print("+-------+------------+-----------+")
-    else:
+    # print out the data if it is not empty
+    if len(new_df) != 0:
         print("+-----+------------+-----------+")
+        print("|     | Date       |   Density |")
+        print("|-----+------------+-----------|")
+        index = 0
+        for index, row in new_df.iterrows():
+            if index > 9:
+                print("| ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+            elif index > 99:
+                print("|", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+            else:
+                print("|  ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+
+        if index > 9:
+            print("+------+------------+-----------+")
+        elif index > 99:
+            print("+-------+------------+-----------+")
+        else:
+            print("+-----+------------+-----------+")
+    else:
+        print("Empty")
 
 
+if __name__ == '__main__':
+    get_user_input()
 
-
-get_user_input()
 
