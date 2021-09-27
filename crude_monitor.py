@@ -9,7 +9,6 @@ import getopt
 
 URL = "https://www.crudemonitor.ca/savePHPExcel.php"
 
-#acronym = "msw"
 name = "Mixed Sweet Blend"
 database = "crudes"
 
@@ -33,6 +32,7 @@ data = requests.post(url=URL, data=form_data)
 
 def convert_date(date):
     try:
+        #check if the date entered is the correct format
         datetime.datetime.strptime(date, '%Y-%m-%d')
         date_list = list(date.split("-"))
         date_list = date_list[::-1]
@@ -40,7 +40,8 @@ def convert_date(date):
         return date_string
 
     except ValueError:
-        print("This is the incorrect date string format. This is the incorrect date string format. It should be YYYY-MM-DD")
+        print("This is the incorrect date string format. It should be YYYY-MM-DD")
+
 
 def get_user_input():
     crude_acronym = None
@@ -54,12 +55,12 @@ def get_user_input():
 
     # Using try and except to make it more robust
     try:
-        opts, args = getopt.getopt(argv,"crude_acronym:start_date:end_date:operation:limit:", ["crude_acronym=", "start_date=", "end_date=", "operation=", "limit="])
+        opts, args = getopt.getopt(argv,"crude_acronym:", ["crude_acronym=", "start_date=", "end_date=", "operation=", "limit="])
 
     except getopt.GetoptError as err:
         print(err)
 
-    # check what the input is and store them in the correstponding variables
+    # check what the input is and store them in the corresponding variables
     for opt, arg in opts:
         if opt in ["--crude_acronym"]:
             crude_acronym = arg
@@ -73,8 +74,10 @@ def get_user_input():
             limit = arg
 
     form_data["acr"] = crude_acronym
-    form_data["date1"] = start_date
-    form_data["date2"] = end_date
+    if start_date != None:
+        form_data["date1"] = start_date
+    if end_date != None:
+        form_data["date2"] = end_date
 
     print("crude_acronym:", crude_acronym)
     print("start_date:",start_date)
@@ -88,11 +91,24 @@ def get_user_input():
     data = io.StringIO(data.text)
     # change it to dataframe using panda
     df = pd.read_csv(data, sep=",")
-    # get the needed data
-    filtered_data = df.loc[df['Density (kg/m^3)'] > int(limit)]
-    filtered_data = filtered_data.rename(columns={'Density (kg/m^3)': 'Density'})
-    new = filtered_data[["Date","Density"]]
-    print(new)
+    if operation != None and limit != None:
+        # get the needed data
+        if (operation == "greater_than") or (operation == ">"):
+            filtered_data = df.loc[df['Density (kg/m^3)'] > int(limit)]
+        elif (operation == "less_than") or (operation == "<"):
+            filtered_data = df.loc[df['Density (kg/m^3)'] < int(limit)]
+        else:
+            print("Invalid operations!")
+            return
+        new_df = filtered_data.reset_index()
+    else:
+        new_df = df.reset_index()
 
-
+    print("+----+------------+-----------+")
+    print("|    | Date       |   Density |")
+    print("|----+------------+-----------|")
+    for index, row in new_df.iterrows():
+        print("| ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+    print("+----+------------+-----------+")
 get_user_input()
+
