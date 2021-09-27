@@ -48,6 +48,10 @@ def get_user_input():
     operation = None
     limit = None
 
+    # get data from crude_monitor_parameters.csv for verifying crude_acronym
+    acr_name_df = pd.read_csv("crude_monitor_parameters.csv")
+    acr_name = acr_name_df[["acr"]]
+
     # start with the arguments at index 1 since the index 0 is the file name
     argv = sys.argv[1:]
 
@@ -62,7 +66,11 @@ def get_user_input():
     # check what the input is and store them in the corresponding variables
     for opt, arg in opts:
         if opt in ["--crude_acronym"]:
-            crude_acronym = arg
+            if arg.upper() in acr_name.values:
+                crude_acronym = arg
+            else:
+                print("Invalid crude_acronym!")
+                return
         elif opt in ["--start_date"]:
             start_date = convert_date(arg)
         elif opt in ["--end_date"]:
