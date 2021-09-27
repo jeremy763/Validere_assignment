@@ -1,4 +1,5 @@
 import datetime
+import os
 import sys
 import numpy as np
 import requests
@@ -28,11 +29,10 @@ form_data = {
     "daterangepicker_end": "",
 }
 
-data = requests.post(url=URL, data=form_data)
 
 def convert_date(date):
     try:
-        #check if the date entered is the correct format
+        # check if the date entered is the correct format
         datetime.datetime.strptime(date, '%Y-%m-%d')
         date_list = list(date.split("-"))
         date_list = date_list[::-1]
@@ -55,7 +55,7 @@ def get_user_input():
 
     # Using try and except to make it more robust
     try:
-        opts, args = getopt.getopt(argv,"crude_acronym:", ["crude_acronym=", "start_date=", "end_date=", "operation=", "limit="])
+        opts, args = getopt.getopt(argv,"crude_acronym:start_date:end_date:", ["crude_acronym=", "start_date=", "end_date=", "operation=", "limit="])
 
     except getopt.GetoptError as err:
         print(err)
@@ -73,24 +73,30 @@ def get_user_input():
         elif opt in ["--limit"]:
             limit = arg
 
+    # adding data to the form_data
     form_data["acr"] = crude_acronym
-    if start_date != None:
-        form_data["date1"] = start_date
-    if end_date != None:
-        form_data["date2"] = end_date
+    form_data["date1"] = start_date
+    form_data["date2"] = end_date
 
     print("crude_acronym:", crude_acronym)
-    print("start_date:",start_date)
-    print("end_date:",end_date)
+    print("start_date:", start_date)
+    print("end_date:", end_date)
     print("operation:", operation)
     print("limit:", limit)
 
-    # fetch data from the website
-    data = requests.post(url=URL, data=form_data)
-    # convert it to string
-    data = io.StringIO(data.text)
-    # change it to dataframe using panda
-    df = pd.read_csv(data, sep=",")
+    # check if it is stored in local
+    saved_csv = crude_acronym + start_date + end_date
+    if os.path.isfile(saved_csv):
+        df = pd.read_csv(saved_csv)
+    else:
+        # fetch data from the website
+        data = requests.post(url=URL, data=form_data)
+        # convert it to string
+        data = io.StringIO(data.text)
+        # change it to dataframe using panda
+        df = pd.read_csv(data, sep=",")
+        df.to_csv(crude_acronym + start_date + end_date)
+
     if operation != None and limit != None:
         # get the needed data
         if (operation == "greater_than") or (operation == ">"):
@@ -104,11 +110,28 @@ def get_user_input():
     else:
         new_df = df.reset_index()
 
-    print("+----+------------+-----------+")
-    print("|    | Date       |   Density |")
-    print("|----+------------+-----------|")
+    # print out the data
+    print("+-----+------------+-----------+")
+    print("|     | Date       |   Density |")
+    print("|-----+------------+-----------|")
+    index = 0
     for index, row in new_df.iterrows():
-        print("| ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
-    print("+----+------------+-----------+")
+        if index > 9:
+            print("| ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+        elif index > 99:
+            print("|", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+        else:
+            print("|  ", index, "|", row['Date'], "|    ", row['Density (kg/m^3)'], "|")
+
+    if index > 9:
+        print("+------+------------+-----------+")
+    elif index > 99:
+        print("+-------+------------+-----------+")
+    else:
+        print("+-----+------------+-----------+")
+
+
+
+
 get_user_input()
 
