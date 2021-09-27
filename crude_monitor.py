@@ -53,6 +53,7 @@ def get_user_input():
 
     # Using try and except to make it more robust
     try:
+        # assumed that crude_acronym, start_date and end_date are required to enter
         opts, args = getopt.getopt(argv,"crude_acronym:start_date:end_date:", ["crude_acronym=", "start_date=", "end_date=", "operation=", "limit="])
 
     except getopt.GetoptError as err:
