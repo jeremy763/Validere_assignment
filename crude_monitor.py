@@ -100,6 +100,7 @@ def get_user_input():
 
     if operation != None and limit != None:
         # get the needed data
+        # assumed there are only greater than and less than operations
         if (operation == "greater_than") or (operation == ">"):
             filtered_data = df.loc[df['Density (kg/m^3)'] > int(limit)]
         elif (operation == "less_than") or (operation == "<"):
