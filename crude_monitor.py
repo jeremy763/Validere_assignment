@@ -8,16 +8,13 @@ import getopt
 
 URL = "https://www.crudemonitor.ca/savePHPExcel.php"
 
-name = "Mixed Sweet Blend"
-database = "crudes"
-
 form_data = {
     "date1noscript": "",
     "date2noscript": "",
     "trendProperty": "AbsoluteDensity",
     "acr": "",
-    "name": name,
-    "db": database,
+    "name": "",
+    "db": "",
     "basicanalysis[]": "AbsoluteDensity",
     "options": "on",
     "date1": "",
@@ -47,6 +44,8 @@ def get_user_input():
     end_date = None
     operation = None
     limit = None
+    database = None
+    name = None
 
     # get data from crude_monitor_parameters.csv for verifying crude_acronym
     acr_name_df = pd.read_csv("crude_monitor_parameters.csv")
@@ -68,6 +67,8 @@ def get_user_input():
         if opt in ["--crude_acronym"]:
             if arg.upper() in acr_name.values:
                 crude_acronym = arg
+                name = acr_name_df.loc[acr_name_df.acr == arg.upper(), "name"].values[0]
+                database = acr_name_df.loc[acr_name_df.acr == arg.upper(), "database"].values[0]
             else:
                 print("Invalid crude_acronym!")
                 return
@@ -84,6 +85,8 @@ def get_user_input():
     form_data["acr"] = crude_acronym
     form_data["date1"] = start_date
     form_data["date2"] = end_date
+    form_data["name"] = name
+    form_data["database"] = database
 
     # check if it is stored in local
     saved_csv = crude_acronym + start_date + end_date
@@ -134,6 +137,7 @@ def get_user_input():
             print("+-----+------------+-----------+")
     else:
         print("Empty")
+        os.remove(saved_csv)
 
 
 if __name__ == '__main__':
